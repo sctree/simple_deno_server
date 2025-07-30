@@ -1,14 +1,25 @@
-/**
- * @title Hello world
- * @difficulty beginner
- * @tags cli, deploy, web
- * @run <url>
- * @resource {https://docs.deno.com/runtime/manual/getting_started/installation} Deno: Installation
- * @resource {https://docs.deno.com/runtime/manual/getting_started/setup_your_environment} Manual: Set up your environment
- * @group Basics
- * @sortOrder 0
- * The one and only line in this program will print "Hello, World!" to the console. Run this file with the Deno CLI and the run command.
- */
+const port = 8080;
+console.log(`WebSocket server running on ws://0.0.0.0:${port}`);
 
-// Log "Hello, World!" to the console.
-console.log("Hello, World!");
+Deno.serve({ port }, async (req) => {
+  const { socket, response } = Deno.upgradeWebSocket(req);
+
+  socket.onopen = () => {
+    console.log("Client connected");
+  };
+
+  socket.onmessage = (event) => {
+    console.log("Received:", event.data);
+    socket.send(`Echo: ${event.data}`);
+  };
+
+  socket.onerror = (e) => {
+    console.error("WebSocket error:", e);
+  };
+
+  socket.onclose = () => {
+    console.log("Client disconnected");
+  };
+
+  return response;
+});
